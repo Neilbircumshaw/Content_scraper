@@ -2,17 +2,17 @@
 var request = require('request'); // this node package makes http requests to which ever URL you direct it to. 
 var cheerio = require('cheerio'); // this node package provides a server-side jQuery implementation.
 var fs = require('fs');
+var json2csv = require('json2csv');
 var baseURI = 'http://www.shirts4mike.com/'; //the base URI of the site we are going to use
 var allShirtsURL = baseURI + 'shirts.php'; //the site we are going to scrap info from
 
 
 // ========= MAIN CALL ========== When the file is typed into the commandline app, this function will run, therefore displaying the data and create a directory called "data" with the data inside a file called data
 
-getAllShirtDetailsAsync()
+/*getAllShirtDetailsAsync()
     .then(function(data) {
         console.log(data);
-		fs.mkdir('data',function(){
-	    fs.writeFile('./data/t-shirtdata.csv', JSON.stringify(data));
+		
 	})
 		
     })
@@ -20,7 +20,30 @@ getAllShirtDetailsAsync()
         console.log(err);
     });
 	
+	*/getAllShirtDetailsAsync()
+    .then(writeToCsv)
+    .catch(handleErr);
 	
+	function writeToCsv(data) {
+    var fields = ['title', 'price', 'imageUrl', 'url', 'time'];
+        var csv = json2csv({ data: data, fields: fields });
+		fs.mkdir('data',function(){
+		var now = new Date();
+	    fs.writeFile('./data/t-shirtdata ' + now.getDay() + "-" + now.getMonth() + "-" + now.getFullYear() + '.csv', csv);
+		console.log(csv)
+	
+	})};
+	
+function handleErr(err) {
+    console.log(err)
+}
+	
+  
+
+
+
+
+
 
 
 
@@ -89,10 +112,10 @@ function getAllShirtDetailsAsync() {
 
                         //Create an object from  the info, storing the data in the relevant keys.
                         var productDetails = {
-                            url: endpoint,
-                            imageUrl: $('.shirt-picture span img').attr('src'),
-                            price: $('.shirt-details h1 span').text(),
                             title: $('.shirt-details h1').text(),
+							price: $('.shirt-details h1 span').text(),
+                            imageUrl: $('.shirt-picture span img').attr('src'),
+							url: endpoint,
                             time: new Date()
                         };
 
@@ -114,6 +137,8 @@ function getAllShirtDetailsAsync() {
     })
     .then(function (data) {
         return data;
+	    	
+		
     })
     .catch(function (err) {
         return Promise.reject(err);
@@ -121,4 +146,4 @@ function getAllShirtDetailsAsync() {
 }
 
 
-
+ 
