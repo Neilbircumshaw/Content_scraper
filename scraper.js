@@ -22,14 +22,17 @@ var allShirtsURL = baseURI + 'shirts.php'; //the site we are going to scrap info
 	
 	*/getAllShirtDetailsAsync()
     .then(writeToCsv)
-    .catch(handleErr);
+	.catch(handleErr);
 	
 	function writeToCsv(data) {
     var fields = ['title', 'price', 'imageUrl', 'url', 'time'];
         var csv = json2csv({ data: data, fields: fields });
 		fs.mkdir('data',function(){
 		var now = new Date();
-	    fs.writeFile('./data/t-shirtdata ' + now.getDay() + "-" + now.getMonth() + "-" + now.getFullYear() + '.csv', csv);
+		var day = now.getDate();
+		var month = now.getMonth() + 1;
+		var year =  now.getFullYear();
+	    fs.writeFile( "./data/" + day + "-" + month  + "-" + year + '.csv', csv);
 		console.log(csv)
 	
 	})};
@@ -110,9 +113,14 @@ function getAllShirtDetailsAsync() {
                         //Load in our body (containing all the shirt details..)
                         var $ = cheerio.load(body);
 
+						// this is a function I found to ignore the price in the title of the shirt. I use this function  marked with a star
+						$.fn.ignore = function(sel){
+                         return this.clone().find(sel||">*").remove().end();
+                           };
+						
                         //Create an object from  the info, storing the data in the relevant keys.
                         var productDetails = {
-                            title: $('.shirt-details h1').text(),
+                            title: $('.shirt-details h1').ignore("span").text(), // * using the ignore function.
 							price: $('.shirt-details h1 span').text(),
                             imageUrl: $('.shirt-picture span img').attr('src'),
 							url: endpoint,
